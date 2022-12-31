@@ -1,6 +1,10 @@
 ﻿#include <iostream>
+#include <fstream>
+#include <string>
 
 using namespace std;
+
+enum mode { BOTTOM_UP, TOP_DOWN };
 
 template <typename T>
 struct BinaryHeap {
@@ -210,6 +214,16 @@ struct Graph {
         edges->add(tmp);
         number_of_edges++;
     }
+
+    void printGraph() {
+        cout << "Nodes: \n";
+        for (int i = 0; i < number_of_nodes; i++)
+            cout << nodes->get(i).x << ' ' << nodes->get(i).y << '\n';
+
+        cout << "Edges: \n";
+        for (int i = 0; i < number_of_edges; i++)
+            cout << edges->get(i).index1 << ' ' << edges->get(i).index2 << ' ' << edges->get(i).weight << '\n';
+    }
 };
 
 struct Union {
@@ -228,7 +242,7 @@ struct Union {
     }
 
     int find(int index) {
-        while (set[index] <= -1) {
+        while (set[index] > 0) {
             index = set[index];
         }
 
@@ -236,21 +250,28 @@ struct Union {
     }
 
     void unite(int index1, int index2) {
-        // zamiast else mozna swap index1 i index2 a potem tylko te dwie linijki a w if else zamienic swapami jedynie
-        if (set[index1] < set[index2]) {
-            set[index1] += set[index2];
-            set[index2] = index1;
-        }
-        else {
-            set[index2] += set[index1];
-            set[index1] = index2;
-        }
+        //if (set[index1] > set[index2]) {
+        //    set[index1] += set[index2];
+        //    set[index2] = index1;
+        //}
+        //else {
+        //    set[index2] += set[index1];
+        //    set[index1] = index2;
+        //}
+
+        // tak lub tak może być
+
+        if (index1 < index2)
+            swap(index1, index2);
+
+        set[index1] += set[index2];
+        set[index2] = index1;
     }
 };
 
-DynamicArray<Edge>* kruskal(Graph g) {
+DynamicArray<Edge> kruskal(Graph g) {
     // dodać sortowanie krawędzi
-    Edge* edges = new Edge[g.number_of_edges];
+    Edge* edges = g.edges->array;
     BinaryHeap<Edge>* bh = new BinaryHeap<Edge>(edges, g.number_of_edges, edge_cmp, 0);
 
     DynamicArray<Edge>* MST = new DynamicArray<Edge>();
@@ -266,18 +287,69 @@ DynamicArray<Edge>* kruskal(Graph g) {
         if (node1_root != node2_root) {
             MST->add(tmp);
             union1.unite(node1_root, node2_root);
+            //cout << node1_root << ' ' << node2_root << '\n';
+            cout << tmp.index1 << ' ' << tmp.index2 << '\n';
         }
     }
 
     delete[] edges;
-    delete[] bh;
+    delete bh;
 
-    return MST;
+    return *MST;
+}
+
+Graph graphFromFile(string fileName) {
+    ifstream plik("../excercises/g1.txt");
+    int number_of_nodes;
+    int number_of_edges;
+    double tmp_x;
+    double tmp_y;
+    int tmp_index1;
+    int tmp_index2;
+    double tmp_weight;
+
+    Graph g;
+
+    plik >> number_of_nodes;
+
+    for (int i = 0; i < number_of_nodes; i++) {
+        plik >> tmp_x >> tmp_y;
+
+        g.addNode(tmp_x, tmp_y);
+    }
+
+    plik >> number_of_edges;
+
+    for (int i = 0; i < number_of_edges; i++) {
+        plik >> tmp_index1 >> tmp_index2 >> tmp_weight;
+
+        g.addEdge(tmp_index1, tmp_index2, tmp_weight);
+    }
+
+
+    plik.close();
+
+    return g;
 }
 
 int main()
 {
     // nie sprawdzałem czy cokolwiek działa
+    // materiały gdybym potrzebował pomocy
+    //  https://www.geeksforgeeks.org/kruskals-minimum-spanning-tree-algorithm-greedy-algo-2/
+    // książka
+    // algolearn
+    // Kurs Udemy
+
+    Graph graph = graphFromFile("../excercises/g1.txt");
+    //graph.printGraph();
+
+    DynamicArray<Edge> wynik = kruskal(graph);
+
+    //for (int i = 0; i < wynik.size; i++) {
+    //    cout << wynik.array[i].index1 << ' ' << wynik.array[i].index2 << '\n';
+    //}
+
 }
 
 
