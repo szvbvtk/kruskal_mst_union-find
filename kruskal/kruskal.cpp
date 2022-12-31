@@ -233,7 +233,6 @@ struct Union {
     Union(int size) {
         set = new int[size] {-1};
         ranks = new int[size] {1};
-
     }
 
     ~Union() {
@@ -284,11 +283,26 @@ struct Union {
         set[index1] += set[index2];
         set[index2] = index1;
     }
+
+    void unite_rank(int index1, int index2) {
+        if (ranks[index1] > ranks[index2]) {
+            set[index1] = index2;
+        }
+        else if (ranks[index1] < ranks[index2]) {
+            set[index2] = index1;
+        }
+        else if(ranks[index1] == ranks[index2]) {
+            set[index2] = index1;
+            ranks[index1]++;
+        }
+    }
+
 };
 
 enum {FIND, FIND_AND_COMPRESS};
+enum {UNION, UNION_BY_RANK};
 
-DynamicArray<Edge> kruskal(Graph g, bool find_mode) {
+DynamicArray<Edge> kruskal(Graph g, bool find_mode = 0, bool union_mode = 0) {
     // dodać sortowanie krawędzi
     Edge* edges = g.edges->array;
     BinaryHeap<Edge>(edges, g.number_of_edges, edge_cmp, 0);
@@ -314,7 +328,14 @@ DynamicArray<Edge> kruskal(Graph g, bool find_mode) {
 
         if (node1_root != node2_root) {
             MST->add(tmp);
-            union1.unite(node1_root, node2_root);
+
+            if (union_mode == UNION) {
+                union1.unite(node1_root, node2_root);
+            }
+            else if (union_mode == UNION_BY_RANK) {
+                union1.unite_rank(node1_root, node2_root);
+            }
+
             //cout << node1_root << ' ' << node2_root << '\n';
             cout << tmp.index1 << ' ' << tmp.index2 << '\n';
         }
@@ -362,17 +383,11 @@ Graph graphFromFile(string fileName) {
 
 int main()
 {
-    // nie sprawdzałem czy cokolwiek działa
-    // materiały gdybym potrzebował pomocy
-    //  https://www.geeksforgeeks.org/kruskals-minimum-spanning-tree-algorithm-greedy-algo-2/
-    // książka
-    // algolearn
-    // Kurs Udemy
 
     Graph graph = graphFromFile("../excercises/g1.txt");
     //graph.printGraph();
 
-    DynamicArray<Edge> wynik = kruskal(graph, FIND_AND_COMPRESS);
+    DynamicArray<Edge> wynik = kruskal(graph, FIND_AND_COMPRESS, UNION_BY_RANK);
 
     //for (int i = 0; i < wynik.size; i++) {
     //    cout << wynik.array[i].index1 << ' ' << wynik.array[i].index2 << '\n';
