@@ -284,6 +284,7 @@ struct Union {
         set[index2] = index1;
     }
 
+
     void unite_rank(int index1, int index2) {
         if (ranks[index1] > ranks[index2]) {
             set[index1] = index2;
@@ -292,8 +293,8 @@ struct Union {
             set[index2] = index1;
         }
         else if(ranks[index1] == ranks[index2]) {
-            set[index2] = index1;
             ranks[index1]++;
+            set[index2] = index1;
         }
     }
 
