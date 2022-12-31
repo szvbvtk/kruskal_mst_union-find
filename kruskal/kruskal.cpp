@@ -249,6 +249,23 @@ struct Union {
         return index;
     }
 
+    int find_compress(int index) {
+
+        int index_compress = index;
+
+        while (set[index] > 0) {
+            index = set[index];
+        }
+
+        while (set[index_compress] != set[index]) {
+            int tmp_index = set[index_compress];
+            set[index_compress] = index;
+            index_compress = tmp_index;
+        }
+
+        return index;
+    }
+
     void unite(int index1, int index2) {
         //if (set[index1] > set[index2]) {
         //    set[index1] += set[index2];
@@ -269,7 +286,9 @@ struct Union {
     }
 };
 
-DynamicArray<Edge> kruskal(Graph g) {
+enum {FIND, FIND_AND_COMPRESS};
+
+DynamicArray<Edge> kruskal(Graph g, bool find_mode) {
     // dodać sortowanie krawędzi
     Edge* edges = g.edges->array;
     BinaryHeap<Edge>(edges, g.number_of_edges, edge_cmp, 0);
@@ -280,9 +299,18 @@ DynamicArray<Edge> kruskal(Graph g) {
 
     for (int i = 0; i < g.number_of_edges; i++) {
         Edge tmp = edges[i];
+        int node1_root;
+        int node2_root;
 
-        int node1_root = union1.find(tmp.index1);
-        int node2_root = union1.find(tmp.index2);
+        if (find_mode == FIND) {
+            node1_root = union1.find(tmp.index1);
+            node2_root = union1.find(tmp.index2);
+        }
+        else if (find_mode == FIND_AND_COMPRESS) {
+            node1_root = union1.find_compress(tmp.index1);
+            node2_root = union1.find_compress(tmp.index2);
+        }
+
 
         if (node1_root != node2_root) {
             MST->add(tmp);
@@ -344,7 +372,7 @@ int main()
     Graph graph = graphFromFile("../excercises/g1.txt");
     //graph.printGraph();
 
-    DynamicArray<Edge> wynik = kruskal(graph);
+    DynamicArray<Edge> wynik = kruskal(graph, FIND_AND_COMPRESS);
 
     //for (int i = 0; i < wynik.size; i++) {
     //    cout << wynik.array[i].index1 << ' ' << wynik.array[i].index2 << '\n';
