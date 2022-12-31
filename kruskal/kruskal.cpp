@@ -272,7 +272,7 @@ struct Union {
 DynamicArray<Edge> kruskal(Graph g) {
     // dodać sortowanie krawędzi
     Edge* edges = g.edges->array;
-    BinaryHeap<Edge>* bh = new BinaryHeap<Edge>(edges, g.number_of_edges, edge_cmp, 0);
+    BinaryHeap<Edge>(edges, g.number_of_edges, edge_cmp, 0);
 
     DynamicArray<Edge>* MST = new DynamicArray<Edge>();
 
@@ -292,8 +292,8 @@ DynamicArray<Edge> kruskal(Graph g) {
         }
     }
 
-    delete[] edges;
-    delete bh;
+    //delete[] edges;
+    //delete bh;
 
     return *MST;
 }
