@@ -7,10 +7,10 @@ using namespace std;
 enum mode { BOTTOM_UP, TOP_DOWN };
 
 template <typename T>
-struct BinaryHeap {
+struct HeapSort {
     int size;
     T* heap_array;
-    BinaryHeap(T* array, int n, int (*func)(T, T), bool mode = 0) {
+    HeapSort(T* array, int n, int (*func)(T, T), bool mode = 0) {
         heap_array = array;
 
         if (mode == TOP_DOWN) {
@@ -30,6 +30,7 @@ struct BinaryHeap {
         sort(size, func);
 
     }
+
 
     void sort(int& size, int (*func)(T, T)) {
         for (int i = size - 1; i > 0; i--) {
@@ -240,20 +241,22 @@ struct Union {
         delete[] ranks;
     }
 
-    int find(int index) {
+    int find(int index, int * counter) {
         while (set[index] > 0) {
             index = set[index];
+            ++*counter;
         }
 
         return index;
     }
 
-    int find_compress(int index) {
+    int find_compress(int index, int* counter) {
 
         int index_compress = index;
 
         while (set[index] > 0) {
             index = set[index];
+            ++*counter;
         }
 
         while (set[index_compress] != set[index]) {
@@ -293,8 +296,8 @@ struct Union {
             set[index2] = index1;
         }
         else if(ranks[index1] == ranks[index2]) {
-            ranks[index1]++;
-            set[index2] = index1;
+            ranks[index2]++;
+            set[index1] = index2;
         }
     }
 
@@ -304,31 +307,37 @@ enum {FIND, FIND_AND_COMPRESS};
 enum {UNION, UNION_BY_RANK};
 
 DynamicArray<Edge> kruskal(Graph g, bool find_mode = 0, bool union_mode = 0) {
-    // dodać sortowanie krawędzi
+
     Edge* edges = g.edges->array;
-    BinaryHeap<Edge>(edges, g.number_of_edges, edge_cmp, 0);
+    HeapSort<Edge>(edges, g.number_of_edges, edge_cmp, 0);
+    double weight_sum = 0;
+    int find_counter = 0;
+    int edge_counter = 0;
+    clock_t start, stop;
 
     DynamicArray<Edge>* MST = new DynamicArray<Edge>();
 
     Union union1{ g.number_of_nodes };
 
+    start = clock();
     for (int i = 0; i < g.number_of_edges; i++) {
         Edge tmp = edges[i];
         int node1_root;
         int node2_root;
 
         if (find_mode == FIND) {
-            node1_root = union1.find(tmp.index1);
-            node2_root = union1.find(tmp.index2);
+            node1_root = union1.find(tmp.index1, &find_counter);
+            node2_root = union1.find(tmp.index2, &find_counter);
         }
         else if (find_mode == FIND_AND_COMPRESS) {
-            node1_root = union1.find_compress(tmp.index1);
-            node2_root = union1.find_compress(tmp.index2);
+            node1_root = union1.find_compress(tmp.index1, &find_counter);
+            node2_root = union1.find_compress(tmp.index2, &find_counter);
         }
 
 
         if (node1_root != node2_root) {
             MST->add(tmp);
+            edge_counter++;
 
             if (union_mode == UNION) {
                 union1.unite(node1_root, node2_root);
@@ -339,17 +348,18 @@ DynamicArray<Edge> kruskal(Graph g, bool find_mode = 0, bool union_mode = 0) {
 
             //cout << node1_root << ' ' << node2_root << '\n';
             cout << tmp.index1 << ' ' << tmp.index2 << '\n';
+            weight_sum += tmp.weight;
         }
     }
+    stop = clock();
 
-    //delete[] edges;
-    //delete bh;
-
+    cout << "\n\nLiczba krawedzi: " << edge_counter << " Suma wag: " << weight_sum << " Liczba operacji find: " << find_counter << "\nCzas obliczen glownej petli: " 
+        << (stop - (double)start)/ CLOCKS_PER_SEC << "\n\n";
     return *MST;
 }
 
 Graph graphFromFile(string fileName) {
-    ifstream plik("../excercises/g1.txt");
+    ifstream plik(fileName);
     int number_of_nodes;
     int number_of_edges;
     double tmp_x;
@@ -388,7 +398,7 @@ int main()
     Graph graph = graphFromFile("../excercises/g1.txt");
     //graph.printGraph();
 
-    DynamicArray<Edge> wynik = kruskal(graph, FIND_AND_COMPRESS, UNION_BY_RANK);
+    DynamicArray<Edge> wynik = kruskal(graph, FIND, UNION_BY_RANK);
 
     //for (int i = 0; i < wynik.size; i++) {
     //    cout << wynik.array[i].index1 << ' ' << wynik.array[i].index2 << '\n';
